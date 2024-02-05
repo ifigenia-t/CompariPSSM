@@ -29,30 +29,31 @@ The CompariPSSM pipeline and interactive visualisations have been made available
 python comparipssm.py --query_pssm_file ./pssm_sets/query_pssm.json --compare_pssm_file ./pssm_sets/elm_pssm.json --output_file ./pssm_sets/test.out.json 
 ```
 
-
 ## Input files
-Position-specific scoring matrices (PSSMs) store models of motif binding determinants as preference scores for individual amino acids at each position within the motif. PSSMs are represented as a matrix, with L columns, where L is the length of the motif peptide and 20 rows, one for each of the standard amino acids. PSSM columns generally refer to the position of the motif and the rows to the amino acid. PSSM JSON files should have standard amino acids as keys with lists of the PSSM values for each position.
+Position-specific scoring matrices (PSSMs) store models of motif binding determinants as preference scores for individual amino acids at each position within the motif. PSSMs are represented as a matrix, with L columns, where L is the length of the motif peptide and 20 rows, one for each of the standard amino acids. PSSM columns generally refer to the position of the motif and the rows to the amino acid. PSSM JSON files are a dictionary of PSSMs where the key is the name of the PSSM. Each PSSM should have standard amino acids as keys with lists of the PSSM values for each position (see _PSSM file example format bellow_).
 
 - `query_pssm_file`: .JSON file containing the query PSSM.
 - `compare_pssm_file`: .JSON file containing the compare PSSM or multiple compare PSSMs.
-- `output_file`: .JSON file containing the results of the PSSM-PSSM comparison.
 
 #### PSSM file example format
 ```
 {
-    "A": [-0.178, -0.924, -0.178, 0.474, -0.924, -0.924, 0.474, -0.924, 0.841, -0.178, -0.178], 
-    "C": [-0.094, 1.707, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094], 
-    "D": [0.403, -0.219, 0.819, -0.604, -0.604, -0.604, -0.604, -0.604, -0.219, 0.403, 1.355], 
-    .
-    .
-    .
-    "Y": [-0.137, 1.408, -0.137, -0.137, -0.137, -0.137, -0.137, 20.0, -0.137, -0.137, -0.137]
+    {"PPxY": 
+        "A": [-0.178, -0.924, -0.178, 0.474, -0.924, -0.924, 0.474, -0.924, 0.841, -0.178, -0.178], 
+        "C": [-0.094, 1.707, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094], 
+        "D": [0.403, -0.219, 0.819, -0.604, -0.604, -0.604, -0.604, -0.604, -0.219, 0.403, 1.355], 
+        .
+        .
+        .
+        "Y": [-0.137, 1.408, -0.137, -0.137, -0.137, -0.137, -0.137, 20.0, -0.137, -0.137, -0.137]}
 }
-
 ```
 
 ## Output files
-The pipeline will produce a file with 
+The pipeline will produce a file:
+- `output_file`: .JSON file containing the results of the PSSM-PSSM comparison.
+
+Every PSSM-PSSM comparison dictionary contains:
 
 - `best`: The best result of the PSSM-PSSM comparison.
 - `significant`: All the significant hits are reported along with the respective motif class, consensus and similarity p-value and dissimilarity score.
