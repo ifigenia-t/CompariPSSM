@@ -1,16 +1,9 @@
-import sys,os,inspect
-
-from optparse import (OptionParser,BadOptionError,AmbiguousOptionError)
-
-file_path = os.path.dirname(inspect.stack()[0][1])
-sys.path.append(os.path.abspath(os.path.join(file_path,"./utilities")))
-
+import logging
+import sys
+from optparse import OptionParser
 import utilities_error
 
-#-----
-import logging
 logger = logging.getLogger(__name__)
-#-----
 
 def isInt(s):
     try:
