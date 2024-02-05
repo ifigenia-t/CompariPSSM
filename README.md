@@ -12,11 +12,14 @@ CompariPSSM quantifies the similarity between short linear motifs (SLiMs) using 
 * [Reference](#reference)
 
 ## PSSM-PSSM Comparison Approach
-The CompariPSSM framework is a pipeline for comparing motif binding determinants encoded as PSSMs. The framework integrates information on PSSM column similarity, scored using Pearson's Correlation Coefficient, and the PSSM column importance, scored using the Gini Coefficient, to align the PSSMs and calculate a similarity score for the best alignment. The CompariPSSM pipeline includes two major steps (Figure 1): (i) the Background Probability Pipeline that calculates the likelihood of pairwise PSSM column Importance-Weighted Similarity (IWS) score using a randomisation-based probabilistic framework, and (ii) the Comparison Pipeline which aligns PSSM pairs using a sliding window approach to define the optimal PSSM-PSSM alignment and applies information from the Background Probability Pipeline to calculate the likelihood of such an alignment occurring by chance. An additional Importance-weighted Dissimilarity (IWD) score that identifies important positions in the query PSSM that are not present in the corresponding position of the comparison PSSM is also calculated in parallel to the IWS score calculation, to discriminate between similar but non-identical motif binding determinants. CompariPSSM takes as input a query PSSM and a set of one or more comparison PSSMs and outputs the aligned best-matching comparison PSSM to the query PSSM with a statistical measure of the likelihood of that match happening by chance.
+The CompariPSSM framework is a pipeline for comparing motif binding determinants encoded as PSSMs. The framework integrates information on PSSM column similarity, scored using Pearson's Correlation Coefficient, and the PSSM column importance, scored using the Gini Coefficient, to align the PSSMs and calculate a similarity score for the best alignment. The CompariPSSM pipeline includes two major steps (Figure 1): 
+(i) the Background Probability Pipeline that calculates the likelihood of pairwise PSSM column Importance-Weighted Similarity (IWS) score using a randomisation-based probabilistic framework, and 
+(ii) the Comparison Pipeline which aligns PSSM pairs using a sliding window approach to define the optimal PSSM-PSSM alignment and applies information from the Background Probability Pipeline to calculate the likelihood of such an alignment occurring by chance. An additional Importance-weighted Dissimilarity (IWD) score that identifies important positions in the query PSSM that are not present in the corresponding position of the comparison PSSM is also calculated in parallel to the IWS score calculation, to discriminate between similar but non-identical motif binding determinants. CompariPSSM takes as input a query PSSM and a set of one or more comparison PSSMs and outputs the aligned best-matching comparison PSSM to the query PSSM with a statistical measure of the likelihood of that match happening by chance.
 
 <p align="center">
   <img src="./docs/img/comparipssm_pipeline_figure_1.png" width="90%" height="100%" title="CompariPSSM Pipeline">
 </p>
+Figure 1. Overview of the CompariPSSM framework.
 
 ## CompariPSSM Web server
 The CompariPSSM pipeline and interactive visualisations have been made available as a web server at https://slim.icr.ac.uk/projects/comparipssm. The CompariPSSM server has numerous input options: (i) input PSSMs, which can be copied and pasted directly in or upload a PSSM in a Tab-Delimited Table or JSON format; (ii) sets of aligned or unaligned peptides; and (iii) protein regions defined UniProt accession, gene name or protein name, and region and start and stop offsets. The query PSSM can be compared against a user-defined input PSSM or the Eukaryotic Linear Motif (ELM) resource-curated PSSM dataset. The output is the best match to the query PSSM, the comparison similarity (IWSsigwin) and dissimilarity score (max IWD score), and logos visualising the PSSM-PSSM comparison. If there is more than one significant match, additional hits are shown in a tabular form.
@@ -35,7 +38,7 @@ Position-specific scoring matrices (PSSMs) store models of motif binding determi
 - `output_file`: .JSON file containing the results of the PSSM-PSSM comparison.
 
 #### PSSM file example format
-```json
+```
 {
     "A": [-0.178, -0.924, -0.178, 0.474, -0.924, -0.924, 0.474, -0.924, 0.841, -0.178, -0.178], 
     "C": [-0.094, 1.707, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094, -0.094], 
@@ -63,7 +66,7 @@ The pipeline will produce a file with
 - `compare_motif_re`: The consensus of the compare motif.
 
 #### Output file example format
-```json
+```
 {
     "query_PPxY": 
         {"best": 
