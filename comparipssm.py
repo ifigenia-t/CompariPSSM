@@ -1,4 +1,4 @@
-import pprint, random, math, re,  json
+import random,pprint,json,sys,os
 
 #-------#-------#-------#-------#-------#-------#-------#-------#-------#-------#-------
 
@@ -13,9 +13,7 @@ import utilities_stats
 import utilities_pssm
 import utilities_error
 
-
-logging.basicConfig()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("compariPSSM")
 
 ##---------------------------------------------------------------------##
 
@@ -28,6 +26,12 @@ class CompariPSSM:
 	def __init__(self):
 		self.options = {
 			"verbose":False,
+			"debug":False,
+			"query_pssm":{},
+			"compare_pssm":{},
+			"query_pssm_file":"",
+			"compare_pssm_file":"",
+			"output_file":"",
 			'ignore_negative_pssm_values':False, 
 			'significance_cutoff':0.0001,
 			'specificity_scoring_type':"gini_normalised",
@@ -64,7 +68,15 @@ class CompariPSSM:
 		}	
 
 		self.options.update(utilities_options.load_commandline_options(self.options,self.options,purge_commandline=False))
-	
+
+		if self.options['verbose']:
+			logging.basicConfig()
+			logger.setLevel(logging.INFO)
+
+		if self.options['debug']:
+			logging.basicConfig()
+			logger.setLevel(logging.DEBUG)
+
 		self.aas = "ACDEFGHIKLMNPQRSTVWY"
 		
 		self.pssm_data = {}
@@ -80,9 +92,6 @@ class CompariPSSM:
 	##---------------------------------##
 
 	def calculate_dissimilarity_score(self,column_dissimilarity,column_gini_coefficients_query,column_gini_coefficients_compare):
-		"""
-		Calculates the Importance Weighted Dissimilarity (IWD) score.
-		"""
 		if self.options['dissimilarity_score_focus'] == "query":
 			dissimilarity_score = (column_dissimilarity*column_gini_coefficients_query)
 		elif self.options['dissimilarity_score_focus'] == "compare":
@@ -91,21 +100,16 @@ class CompariPSSM:
 		return dissimilarity_score
 
 	def calculate_similarity_score(self,column_pearson_corr,column_gini_coefficients_query,column_gini_coefficients_compare):
-		"""
-		Calculates the Importance Weighted Similarity (IWS) score for PSSM - PSSM column comparison.
-		"""
 		return (column_pearson_corr)*column_gini_coefficients_query*column_gini_coefficients_compare
 
 	##---------------------------------##
 
 	def normalise_pssm(self,pssm):
-		"""
-		Normalises the PSSMs according to the input options.
-		"""
 		normalised_pssm = pssm
 
 		if self.options["ignore_negative_pssm_values"]:
 			normalised_pssm = utilities_pssm.positivise_pssm(normalised_pssm)
+		
 		if self.options["pssm_normalise_count_sum_to_one"]:
 			normalised_pssm = utilities_pssm.pssm_normalise_column_sum_to_one(normalised_pssm)
 		elif self.options["pssm_normalise_min_max"]:
@@ -116,9 +120,6 @@ class CompariPSSM:
 	##---------------------------------##
 
 	def process_pssm(self,pssm):
-		"""
-		Processes the PSSM and returns the raw and normalised PSSM columns along with the Gini Coefficient for each column.
-		"""
 		normalised_columns = {}
 
 		pssm_length = len(pssm[self.aas[0]])
@@ -144,9 +145,6 @@ class CompariPSSM:
 	##---------------------------------##
 
 	def process_pssm_gini_coefficients(self,normalised_columns):
-		"""
-		Normalises the Gini Coefficients.
-		"""
 		gini_coefficients = {}
 		response_gini_coefficients = {}
 
@@ -184,9 +182,6 @@ class CompariPSSM:
 	##---------------------------------##
 
 	def sample_column_scores(self):
-		"""
-
-		"""
 		logger.debug("Calculating sampled column comparison scores")
 
 		self.data["sampled_column_comparison_scores"] = []
@@ -233,8 +228,6 @@ class CompariPSSM:
 	##---------------------------------##
 
 	def sampled_column_comparison_scores_p_value(self,score):
-		"""
-		"""
 		list_bisect = bisect(self.data["sampled_column_comparison_scores"], score)
 		if list_bisect == len(self.data["sampled_column_comparison_scores"]):
 			list_bisect = len(self.data["sampled_column_comparison_scores"]) - 1 
@@ -475,7 +468,8 @@ class CompariPSSM:
 
 				if self.options["query_dataset"] not in ["proppd_dms","folder_pssms","pssm_file"]:
 					self.results[pssm_1]["best"]["query_pssm_score_scheme"] = self.options["query_pssm_score_scheme"]
-		
+			
+			#####------------------–#####
 
 			if score < self.options['significance_cutoff'] and significant_positions_check:
 				if self.options['detailed_results']:
@@ -500,7 +494,7 @@ class CompariPSSM:
 									
 	def compare_pssms(self):
 		logger.debug("Comparing PSSMs: " + str(len(self.options["query_pssm_names"])) + " -> " + str(len(self.options["compare_pssm_names"])))		
-		rows = []
+		rows = ["\t".join(["sim_p","dissim","q_re","c_re","q_name","c_name"])]
 
 		if len(self.options["query_pssm_names"]) == 0 or len(self.options["compare_pssm_names"]) == 0:
 			logger.error('Nothing to compare')
@@ -562,36 +556,39 @@ class CompariPSSM:
 					self.results[pssm_1]["best"]["query_pssm_normalised"] = self.normalise_pssm(self.results[pssm_1]["best"]["query_pssm"] )
 					self.results[pssm_1]["best"]["compare_pssm_normalised"] = self.normalise_pssm(self.results[pssm_1]["best"]["compare_pssm"] )
 					
-				##############################################################################	
+				##############################################################################			
 
 				row = "\t".join([
-					str(len(self.results[pssm_1]["significant"])),
 					"%1.3g"%self.results[pssm_1]["best"]["score"],
+					"%1.3f"%self.results[pssm_1]["best"]["dissimilarity_scores_max"],
 					self.results[pssm_1]["best"]["query_motif_re"],
 					self.results[pssm_1]["best"]["compare_motif_re"],
-					self.options["compare_pssm_score_scheme"],
-					self.options["query_pssm_score_scheme"],
 					self.pssm_data[pssm_1]["name"],
 					self.pssm_data[self.results[pssm_1]["best"]["compare_motif"]]["name"],
 				])
 
-				rows.append(row)
+
 				
+				rows.append(row)
 			except:
 				logger.error("Can't find best hit: " + pssm_1)
 				utilities_error.printError()
+
+			
+			if self.options['verbose']:
+				print("\n".join(rows))
 	
 	##---------------------------------####-------------------------####-------------------------##
 	##---------------------------------####-------------------------####-------------------------##
 
 	def setup_pssm_json(self,pssm_type):
 		if pssm_type == "query":
+		
 			pssms = self.options['query_pssm']
 			
 		if pssm_type == "compare":
 			pssms = self.options['compare_pssm']
 			
-
 		for pssm_id in pssms:
 			self.pssm_data[pssm_type + "_" + pssm_id] = {
 				"pssm_type":pssm_type,
@@ -599,6 +596,7 @@ class CompariPSSM:
 				"motifs":utilities_pssm.get_pssm_motif(pssms[pssm_id],cut_off=0.2),
 				"pssm": pssms[pssm_id]
 			}
+
 
 	##---------------------------------####-------------------------####-------------------------##
 	##---------------------------------####-------------------------####-------------------------##
@@ -652,10 +650,53 @@ class CompariPSSM:
 	##---------------------------------##
 
 	def run_pssm_comparison_analysis(self):
-		self.setup_pssms()
-		self.process_pssms()
-		self.compare_pssms()
+		try:
+			if (len(self.options["query_pssm"]) == 0 or len(self.options["compare_pssm"]) == 0) and (len(self.options["query_pssm_file"]) == 0 or len(self.options["compare_pssm_file"]) == 0):
+				logger.error("Input PSSMs not set. Add using --query_pssm_file and --compare_pssm_file or (in function query_pssm and compare_pssm)")
+				sys.exit()
+			
+			if (len(self.options["query_pssm_file"]) != 0 and len(self.options["compare_pssm_file"]) != 0):
+				if not os.path.exists(self.options["query_pssm_file"]):
+					logger.error(self.options["query_pssm_file"] + " output file does not exist ")
+					sys.exit()
+				
+				if not os.path.exists(self.options["query_pssm_file"]):
+					logger.error(self.options["query_pssm_file"] + " output file does not exist ")
+					sys.exit()
+				
+				self.options['query_pssm'] = json.loads(open(self.options['query_pssm_file']).read())
+				self.options['compare_pssm'] = json.loads(open(self.options['compare_pssm_file']).read())
+
+				for pssm_type in ['query_pssm',"compare_pssm"]:
+					for pssm_id in self.options[pssm_type]:
+						pssm_status = utilities_pssm.check_pssm(self.options[pssm_type][pssm_id])
+						if pssm_status['status'] == "error":
+							logger.error(pssm_type + ":" + pssm_id + " " + pssm_status['error_type'])
+							sys.exit()
+						else:
+							logger.debug(pssm_type + ":" + pssm_id + " PSSM check successful")
+							
+			if (len(self.options["output_file"]) == 0) and (len(self.options["query_pssm_file"]) != 0 and len(self.options["compare_pssm_file"]) != 0):
+				logger.error("Output file not set. Add using --output_file ")
+				sys.exit()
+			
+			self.setup_pssms()
+			self.process_pssms()
+			self.compare_pssms()
+		except:
+			logger.error("Error running compariPSSM")
+			self.results = utilities_error.getError()
+			raise
+
+		if len(self.options["output_file"]) > 0:
+			with open(self.options["output_file"], 'w') as f:
+				json.dump( self.results, f)
 
 		return self.results
 
 	##---------------------------------##
+
+if __name__ == "__main__":
+	comparipssm_runner = CompariPSSM()
+	pssm_comparison_response = comparipssm_runner.run_pssm_comparison_analysis()
+	

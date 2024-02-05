@@ -1,9 +1,12 @@
-import logging
 import sys
+
 from optparse import OptionParser
 import utilities_error
 
+#-----
+import logging
 logger = logging.getLogger(__name__)
+#-----
 
 def isInt(s):
     try:
@@ -26,7 +29,6 @@ class MyOptionParser(OptionParser):
 		
 def load_commandline_options(options,options_help,purge_commandline=False,show_errors=False,verbose=False,debug=False):
 
-	## TODO: This still has some issues with dropping options when a unknown option is passed
 
 	commandline_options = {}
 

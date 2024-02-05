@@ -41,6 +41,8 @@ def incomplete_gamma(s,x,alternate=False):
 						den = ((s + n)*factorial(n))
 						bit = num/den
 
+
+
 					try:
 						summer += bit
 					except:

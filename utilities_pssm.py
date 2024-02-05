@@ -1,7 +1,6 @@
-import sys,traceback,pprint,math
+import math
 
 import utilities_stats
-import utilities_error
 
 ###################################################################
 ### PSSM
@@ -416,28 +415,6 @@ def substract_pssms(pssm_a,pssm_b,aas=[]):
 	return substracted_pssm
 
 
-def difference_pssms(pssm_a,pssm_b,aas=[]):
-	if len(aas) == 0: aas = list("CPQNTSGAVILMFYWHKRDE")
-
-	from scipy.stats import binom
-
-	difference_pssm = {}
-
-	pssm_a_column_sums = get_column_sums(pssm_a)
-	pssm_b_column_sums = get_column_sums(pssm_b)
-
-	if len(pssm_a['A']) != len(pssm_b['A']):
-		return {"status":"Error","error_type":"PSSMs differ in size"}
-
-	for aa in aas:
-		difference_pssm[aa] = []
-		for i in range(0,len(pssm_a['A'])):
-			
-			p = binom.cdf(pssm_a[aa][i],pssm_a_column_sums[i],pssm_b[aa][i]/pssm_b_column_sums[i])
-			difference_pssm[aa].append(p)
-
-	return difference_pssm
-
 
 def get_columns(pssm,aas=[]):
 	if len(aas) == 0: aas = list("CPQNTSGAVILMFYWHKRDE")
@@ -482,3 +459,32 @@ def get_pssm_motif(pssm,cut_off=0.5,aas=[]):
 
 	return motif
 
+
+def check_pssm(pssm):
+	aaStandard = ['A', 'C', 'E', 'D', 'G', 'F', 'I', 'H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y']
+
+	aa_pssms = pssm.keys()
+	if set(aa_pssms).symmetric_difference(set(aaStandard)):
+		return {"status":"error", "error_type":"Incorrect keys, should be standard amino acids: " + ",".join(aaStandard)}
+	
+	for aa in aaStandard:
+		for idx,val in enumerate(pssm[aa]):
+			try:
+				float(val)
+			except:
+				return {"status":"error", "error_type":"not float value for PSSM["+str(aa)+"]["+str(idx)+"]"}
+				
+	pssm_len = list(set([len(x) for x in list(pssm.values())]))
+	if len(pssm_len) > 1:
+		return {"status":"error", "error_type":"PSSM - incorrect number of columns for aas. All should be of equal length. Range:" + ",".join(map(str,pssm_len)) }
+		
+	pssm_len = pssm_len[0]
+	if pssm_len < 3:
+		return {"status":"error", "error_type":"PSSM is too short, PSSM length should be > 2, not " + str(pssm_len) + ". Key: pssm."}
+		
+
+	if pssm_len > 40:
+		return {"status":"error", "error_type":"PSSM is too long, PSSM length should be < 40, not " + str(pssm_len) + ". Key: pssm."}
+		
+	return {"status":"success"}
+		
