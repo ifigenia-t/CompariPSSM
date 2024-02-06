@@ -1,8 +1,6 @@
 import json, pprint
-
 import comparipssm
 
-##---------------------------------------------------------------------##
 
 if __name__ == "__main__":
 	comparipssm_runner = comparipssm.CompariPSSM()

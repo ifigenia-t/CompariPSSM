@@ -25,15 +25,36 @@ Figure 1. Overview of the CompariPSSM framework.
 The CompariPSSM pipeline and interactive visualisations have been made available as a web server at https://slim.icr.ac.uk/projects/comparipssm. The CompariPSSM server has numerous input options: (i) input PSSMs, which can be copied and pasted directly in or upload a PSSM in a Tab-Delimited Table or JSON format; (ii) sets of aligned or unaligned peptides; and (iii) protein regions defined UniProt accession, gene name or protein name, and region and start and stop offsets. The query PSSM can be compared against a user-defined input PSSM or the Eukaryotic Linear Motif (ELM) resource-curated PSSM dataset. The output is the best match to the query PSSM, the comparison similarity (IWSsigwin) and dissimilarity score (max IWD score), and logos visualising the PSSM-PSSM comparison. If there is more than one significant match, additional hits are shown in a tabular form.
 
 ## Usage
-```bash
+### CLI
+Call CompariPSSM directly from the command line:
+
+```shell
 python comparipssm.py --query_pssm_file ./pssm_sets/query_pssm.json --compare_pssm_file ./pssm_sets/elm_pssm.json --output_file ./pssm_sets/test.out.json 
 ```
+### Import Library
+Use CompariPSSM as a library:
+
+```python
+import comparipssm
+
+comparipssm_runner = comparipssm.CompariPSSM() 
+query_pssm = json.loads(open('./pssm_sets/query_pssm.json').read())
+compare_pssm = json.loads(open('./pssm_sets/elm_pssm.json').read())
+comparipssm_runner.options["query_pssm"] = query_pssm
+comparipssm_runner.options["compare_pssm"] = compare_pssm
+comparipssm_runner.options["significance_cutoff"] = 0.0001
+pssm_comparison_response = comparipssm_runner.run_pssm_comparison_analysis()
+```
+Parameters:
+- `significance_cutoff`: The PSSM-PSSM comparison p-value significance cutoff.
 
 ## Input files
 Position-specific scoring matrices (PSSMs) store models of motif binding determinants as preference scores for individual amino acids at each position within the motif. PSSMs are represented as a matrix, with L columns, where L is the length of the motif peptide and 20 rows, one for each of the standard amino acids. PSSM columns generally refer to the position of the motif and the rows to the amino acid. PSSM JSON files are a dictionary of PSSMs where the key is the name of the PSSM. Each PSSM should have standard amino acids as keys with lists of the PSSM values for each position (see _PSSM file example format bellow_).
 
 - `query_pssm_file`: .JSON file containing the query PSSM.
 - `compare_pssm_file`: .JSON file containing the compare PSSM or multiple compare PSSMs.
+- `elm_pssm.json`: .JSON file containing the PSSMs created from motif instances from the [ELM database](http://elm.eu.org/ "ELM database"). For each ELM class, peptides were extracted and aligned using the ELM-defined class consensus. The PSSMs were calculated from peptide alignments using the [PSSMSearch](https://slim.icr.ac.uk/pssmsearch/) web application with default parameters and the frequency PSSM construction method [(Krystkowiak et al., 2018)](https://academic.oup.com/nar/article/46/W1/W235/5033155?login=false).
+
 
 #### PSSM file example format
 ```
