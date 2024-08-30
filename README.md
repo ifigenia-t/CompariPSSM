@@ -122,12 +122,13 @@ Every PSSM-PSSM comparison dictionary contains:
 ```python
 # FaSTPACE peptide alignment:
 
-# Requires fastpace installation - pip install fastpace
-from fastpace import run_motif_discovery
-
 peptides = ['TSPDGGTTFEHLWSSL', 'SPEVFQHIWDFLEQPI', 'CPVDPFEAQWAALENK', 'EPPLSQETFSDLWKLL', 'APELDPFEAQWAALEG']
-results = run_motif_discovery(peptides, refine=0)
-print(results["alignment"]["aligned_sequences"].values())
+
+def align_peptides(peptides):
+  # Requires fastpace installation - pip install fastpace
+  from fastpace import run_motif_discovery
+  results = run_motif_discovery(peptides, refine=0)
+  return results["alignment"]["aligned_sequences"].values()
 
 # PSSM Frequency Construction:
 
@@ -163,11 +164,6 @@ def get_frequency_pssm(peptides):
             pssm[aa].append(float(aaColumn[i].count(aa))/(len(aaColumn[i])))
     return pssm
 
-if __name__ == "__main__":
-    peptides = ['DAVD','DESD','-LID','-AVD','DAVD','----','DAZZ']
-    pssm = get_frequency_pssm(peptides)
-    print(pssm)
-
 # Gini Coefficient Calculation:
 
 def get_pssm_gini(pssm):
@@ -194,6 +190,7 @@ def gini_coefficient(column):
         return  diffsum / (len(column)**2 * sum(column)/len(column))
     except:
         return 0
+
 ```
 
 ## License
