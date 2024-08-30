@@ -118,6 +118,65 @@ Every PSSM-PSSM comparison dictionary contains:
         }
 }
 ```
+## Useful code snippets
+```python
+# FaSTPACE peptide alignment:
+
+# Requires fastpace installation - pip install fastpace
+from fastpace import run_motif_discovery
+
+peptides = ['TSPDGGTTFEHLWSSL', 'SPEVFQHIWDFLEQPI', 'CPVDPFEAQWAALENK', 'EPPLSQETFSDLWKLL', 'APELDPFEAQWAALEG']
+results = run_motif_discovery(peptides, refine=0)
+print(results["alignment"]["aligned_sequences"].values())
+
+# PSSM Frequency Construction:
+
+def make_empty_pssm(length,aas=[]):
+    if len(aas) == 0: aas = list("CPQNTSGAVILMFYWHKRDE")
+    pssm = {}
+    for aa in aas:
+        pssm[aa] = []
+    for i in range(0,length):
+        for aa in aas:
+            pssm[aa].append(0)
+    return pssm
+
+def make_peptides_frequency_pssm(peptides):
+    # Assumes check has been formed that all peptides are the same length
+    pssm =  make_empty_pssm(len(peptides[0]))
+    for peptide in peptides:
+        for i in range(0,len(peptide)):
+            aa = peptide[i]
+            pssm[aa][i] += 1/len(peptides)
+    return pssm
+
+# Gini Coefficient Calculation:
+
+def get_pssm_gini(pssm):
+    pssm_columns = get_columns(pssm)
+    gini_scores = {}
+    for column in pssm_columns:
+        gini_scores[column] = gini_coefficient(pssm_columns[column])
+    return gini_scores
+
+def get_columns(pssm,aas=[]):
+    if len(aas) == 0: aas = list("CPQNTSGAVILMFYWHKRDE")
+    pssm_columns = {}
+    for i in range(0,len(pssm['A'])):
+        pssm_columns[i] = []
+        for aa in aas:
+            pssm_columns[i].append(pssm[aa][i])
+    return pssm_columns
+
+def gini_coefficient(column):
+    diffsum = 0
+    try:
+        for i, xi in enumerate(column[:-1], 1):
+            diffsum += sum([abs(xi -y) for y in column[i:]])
+        return  diffsum / (len(column)**2 * sum(column)/len(column))
+    except:
+        return 0
+```
 
 ## License
 This source code is licensed under the MIT license found in the `LICENSE` file in the root directory of this source tree.
