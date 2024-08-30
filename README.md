@@ -131,24 +131,42 @@ print(results["alignment"]["aligned_sequences"].values())
 
 # PSSM Frequency Construction:
 
-def make_empty_pssm(length,aas=[]):
-    if len(aas) == 0: aas = list("CPQNTSGAVILMFYWHKRDE")
+def get_frequency_pssm(peptides):
+    aas =  list("ACDEFGHIKLMNPQRSTVWY")
+
+    # check peptides
+    if not peptides:
+        return "Missing peptides"
+
+    peptides_lens = [len(x) for x in peptides]
+    peptides_lens = list(set(peptides_lens))
+    if len(peptides_lens) != 1:
+        return "Peptides not aligned."
+
+    pssm_len = len(peptides[0])
+
+    # pssm columns
+    aaColumn = {}
+    for i in range(0, pssm_len):
+        aaColumn[i] = []
+
+    for peptide in peptides:
+        for i in range(0,pssm_len):
+            aaColumn[i].append(peptide[i])
+
+    ## pssm frequency
     pssm = {}
     for aa in aas:
-        pssm[aa] = []
-    for i in range(0,length):
-        for aa in aas:
-            pssm[aa].append(0)
+        if aa not in pssm: pssm[aa] = []
+
+        for i in range(0, pssm_len):
+            pssm[aa].append(float(aaColumn[i].count(aa))/(len(aaColumn[i])))
     return pssm
 
-def make_peptides_frequency_pssm(peptides):
-    # Assumes check has been formed that all peptides are the same length
-    pssm =  make_empty_pssm(len(peptides[0]))
-    for peptide in peptides:
-        for i in range(0,len(peptide)):
-            aa = peptide[i]
-            pssm[aa][i] += 1/len(peptides)
-    return pssm
+if __name__ == "__main__":
+    peptides = ['DAVD','DESD','-LID','-AVD','DAVD','----','DAZZ']
+    pssm = get_frequency_pssm(peptides)
+    print(pssm)
 
 # Gini Coefficient Calculation:
 
