@@ -200,5 +200,6 @@ This source code is licensed under the MIT license found in the `LICENSE` file i
 If you find the pipeline useful in your research, we ask that you cite our paper:
 ```
 In preparation: 
-"CompariPSSM: a PSSM-PSSM comparison tool for motif specificity determinant analysis" I. Tsitsa, I. Krystkowiak, N.E. Davey (2024) PMID:TBD
+"CompariPSSM: a PSSM-PSSM comparison tool for motif specificity determinant analysis" I. Tsitsa, I. Krystkowiak, N.E. Davey (2024) PMID:39471470
+https://doi.org/10.1093/bioinformatics/btae644
 ```
